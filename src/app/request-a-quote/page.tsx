@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/site.config";
+import { isDemo, siteConfig } from "@/site.config";
 import { telHref } from "@/lib/contact";
 import { Icon } from "@/components/Icon";
 import { PageHero } from "@/components/sections";
@@ -32,6 +32,7 @@ export default function QuotePage() {
               phone={b.phone}
               phoneHref={telHref(b.phone)}
               messengerUrl={b.messengerUrl}
+              demo={isDemo}
             />
           </div>
 

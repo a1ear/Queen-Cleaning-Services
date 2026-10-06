@@ -7,6 +7,20 @@ import { Hours } from "./sections";
 
 const b = siteConfig.business;
 
+/** Top bar on every page while the site is a demo. */
+export function DemoBar() {
+  return (
+    <div className="demo-bar">
+      <p><strong>DEMO WEBSITE</strong> <span>Sample content for preview only. This is not a live business.</span></p>
+    </div>
+  );
+}
+
+/** Small badge that stays on screen while scrolling. Taps pass through it. */
+export function DemoBadge() {
+  return <div className="demo-badge" aria-hidden="true">DEMO</div>;
+}
+
 export function SiteHeader() {
   return (
     <header className="site-header">

@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { siteConfig } from "@/site.config";
+import { isDemo, siteConfig } from "@/site.config";
 
 const { business: b } = siteConfig;
 
@@ -20,6 +20,11 @@ export default function OpengraphImage() {
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <div style={{ width: 64, height: 64, borderRadius: 32, background: "#0b7a75", display: "flex" }} />
           <div style={{ fontSize: 40, fontWeight: 700 }}>{b.name}</div>
+          {isDemo && (
+            <div style={{ marginLeft: "auto", background: "#0d2633", color: "#ffd166", padding: "10px 24px", borderRadius: 40, fontSize: 28, fontWeight: 800 }}>
+              DEMO WEBSITE
+            </div>
+          )}
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 92, fontWeight: 800, lineHeight: 1.05 }}>{b.headline[0]}</div>

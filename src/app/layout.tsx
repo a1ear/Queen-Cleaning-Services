@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree } from "next/font/google";
-import { siteConfig } from "@/site.config";
-import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
+import { isDemo, siteConfig } from "@/site.config";
+import { DemoBadge, DemoBar, SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import "./globals.css";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree", display: "swap" });
@@ -10,7 +10,10 @@ const { business: b } = siteConfig;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.siteUrl),
-  title: { default: `${b.name} | Professional Cleaning Services in Bacolod City`, template: `%s | ${b.name}` },
+  title: {
+    default: `${isDemo ? "DEMO | " : ""}${b.name} | Professional Cleaning Services in Bacolod City`,
+    template: `${isDemo ? "DEMO | " : ""}%s | ${b.name}`,
+  },
   description: b.description,
   applicationName: b.name,
   openGraph: { type: "website", siteName: b.name, locale: "en_PH" },
@@ -26,9 +29,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className={figtree.variable}>
       <body>
         <a className="skip-link" href="#main">Skip to main content</a>
+        {isDemo && <DemoBar />}
         <SiteHeader />
         <main id="main" tabIndex={-1}>{children}</main>
         <SiteFooter />
+        {isDemo && <DemoBadge />}
       </body>
     </html>
   );

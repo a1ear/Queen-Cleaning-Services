@@ -15,6 +15,7 @@ type Props = {
   phone: string;
   phoneHref: string;
   messengerUrl: string;
+  demo: boolean;
 };
 
 type Status = "idle" | "submitting" | "success" | "error";
@@ -282,6 +283,12 @@ export function QuoteForm(props: Props) {
             {props.messengerUrl && <> or on <a href={props.messengerUrl} rel="noopener" target="_blank">Messenger</a></>}.
           </p>
         </div>
+      )}
+
+      {props.demo && (
+        <p className="demo-note">
+          <strong>Demo website:</strong> this form works, but requests sent here are for testing only. No one will respond.
+        </p>
       )}
 
       <button className={`btn btn-primary btn-lg btn-block submit-btn${submitting ? " is-loading" : ""}`} type="submit"

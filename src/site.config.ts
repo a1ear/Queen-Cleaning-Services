@@ -29,6 +29,13 @@ export type Service = {
 export const siteConfig = {
   contentReviewed: false,
 
+  /**
+   * Show the "DEMO WEBSITE" banner and badge. It is always on while
+   * `contentReviewed` is false (sample content). Set this to true to keep
+   * showing it on a reviewed site, e.g. a client preview before launch.
+   */
+  demoMode: false,
+
   /** The live address of the site, no trailing slash. */
   siteUrl: "https://www.example.com",
 
@@ -174,6 +181,9 @@ export const siteConfig = {
 };
 
 export type SiteConfig = typeof siteConfig;
+
+/** True while the site is a demo: sample content, or demoMode switched on. */
+export const isDemo = !siteConfig.contentReviewed || siteConfig.demoMode;
 
 /** Every value the service dropdown accepts. The API rejects anything else. */
 export const serviceOptions = [
