@@ -1,5 +1,5 @@
 {
-  "name": "laundry-website",
+  "name": "cleaning-website",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -25,7 +25,7 @@
     "eslint-config-next": "16.3.8",
     "typescript": "^5"
   },
-  "description": "Laundry business website with a quote form that records inquiries in Google Sheets through Make.com.",
+  "description": "General cleaning company website (Bacolod City) with a quote form that records inquiries in Google Sheets through Make.com.",
   "engines": {
     "node": ">=20.9"
   }

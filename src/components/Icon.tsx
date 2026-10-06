@@ -2,10 +2,12 @@
 // next to a text label, so screen readers skip them.
 
 const PATHS = {
-  fold: <><path d="M8.5 4 4 6.6V10l2.8-.9V20h10.4V9.1L20 10V6.6L15.5 4" /><path d="M8.5 4a3.5 3.5 0 0 0 7 0" /><path d="M7 14.5h10" /></>,
-  washer: <><rect x="4" y="2.5" width="16" height="19" rx="2.5" /><circle cx="12" cy="13.2" r="5" /><path d="M7.5 6h.01M10.5 6h.01" /><path d="M9.3 14.3c1-.8 1.9.8 2.9 0s1.9.8 2.6 0" /></>,
-  hanger: <path d="M10 6a2 2 0 1 1 2 2v1.3l8.2 5.6a1.4 1.4 0 0 1-.8 2.6H4.6a1.4 1.4 0 0 1-.8-2.6L12 9.3" />,
-  truck: <><path d="M2.5 6.5h11.5v9H2.5z" /><path d="M14 9.5h3.6l3 3.3v2.7H14" /><circle cx="6.8" cy="17.5" r="1.8" /><circle cx="17" cy="17.5" r="1.8" /></>,
+  home: <><path d="M3.5 11 12 4l8.5 7" /><path d="M5.5 9.8V20h13V9.8" /><path d="M10 20v-5.5h4V20" /></>,
+  building: <><rect x="5" y="3.5" width="14" height="17" rx="1.5" /><path d="M9 8h.01M12 8h.01M15 8h.01M9 12h.01M12 12h.01M15 12h.01" /><path d="M10 20.5v-4h4v4" /></>,
+  spray: <><path d="M8 12.5h7V20a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1z" /><path d="M9.5 12.5V9h5l2-1.5M12 9V6.5h3" /><path d="M19 6.5h.01M20.5 9h.01M19 11.5h.01" /></>,
+  hammer: <><path d="m14 9-9.2 9.2a1.5 1.5 0 0 0 2.1 2.1L16 11" /><path d="M13 5.5 17.5 10l3-3-3.5-3.5a2 2 0 0 0-2.8 0z" /></>,
+  sofa: <><path d="M5 11V8.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2V11" /><path d="M3.5 12.5a1.5 1.5 0 0 1 3 0V14h11v-1.5a1.5 1.5 0 0 1 3 0V17a1 1 0 0 1-1 1h-16a1 1 0 0 1-1-1z" /><path d="M6 18v2M18 18v2" /></>,
+  box: <><path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z" /><path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9" /></>,
   sparkle: <><path d="m11 3 1.7 4.4 4.4 1.7-4.4 1.7L11 15.2l-1.7-4.4L4.9 9.1l4.4-1.7z" /><path d="m18 14 .8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" /></>,
   pin: <><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" /><circle cx="12" cy="10" r="2.3" /></>,
   tag: <><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.4 1.4 0 0 1 0 2l-6.7 6.7a1.4 1.4 0 0 1-2 0z" /><circle cx="8" cy="8" r="1.3" /></>,
@@ -42,7 +44,7 @@ export function LogoMark() {
     <svg className="logo-mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
       <circle cx="20" cy="20" r="20" fill="var(--brand)" />
       <circle cx="31" cy="9" r="4.5" fill="var(--sun)" />
-      <path d="M14.5 12.5 10 15v3.6l2.8-.9V28h14.4V17.7l2.8.9V15l-4.5-2.5a5.5 5.5 0 0 1-11 0z" fill="#fff" />
+      <path d="m18 11 2.8 7.7 7.7 2.8-7.7 2.8L18 32l-2.8-7.7-7.7-2.8 7.7-2.8z" fill="#fff" />
     </svg>
   );
 }

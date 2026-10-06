@@ -1,6 +1,8 @@
 # Make.com setup: step by step
 
-This guide connects the website's **Request a Quote** form to a Google Sheet. When you're done,
+> Using Claude to do or check this? Point it at [MAKE-FOR-CLAUDE.md](MAKE-FOR-CLAUDE.md) instead.
+
+This guide connects the website's **Request Services** form to a Google Sheet. When you're done,
 every request a customer submits appears as a new row in the sheet within a few seconds.
 
 **Time needed:** about 45 minutes the first time.
@@ -21,7 +23,7 @@ Customer fills in the form
 Website server  (/api/inquiry)
   • checks every field
   • blocks spam and repeated submissions
-  • creates the Inquiry ID, e.g. LAU-20261006-7KQ2M
+  • creates the Inquiry ID, e.g. QC-20261006-7KQ2M
         │  sends the inquiry + a secret password
         ▼
 Make.com scenario
@@ -35,10 +37,28 @@ Google Sheet "Inquiries"  →  staff read it and update Status
 ```
 
 The website tells the customer "Request Submitted!" **only after step 4**. If anything fails on
-the way, the customer sees a friendly error with the shop's phone number instead.
+the way, the customer sees a friendly error with the business's phone number instead.
 
 The Make address and the secret password are stored only on the server, never in the web page, so
 nobody can copy them from the browser and flood the sheet with junk.
+
+---
+
+## Already built this for the old laundry version? Update it in 6 steps
+
+The website now collects **Property Type** and **Property Size** instead of Service Type and Estimated
+Amount, and the address is always filled in. The Make scenario, secret, and webhook URL stay the same.
+You only update the sheet headers and two mappings.
+
+1. **Google Sheet, row 1:** rename **G1** from `Estimated Amount` to `Property Type`, and **H1** from
+   `Service Type` to `Property Size`. All other headers stay as they are.
+2. **Make → the webhook module:** open it, click **Redetermine data structure**, and leave it waiting.
+3. **Send a sample** with the command in step 3.3 below (it already has the new fields). Click **OK**
+   when Make says it determined the structure.
+4. **Make → the Google Sheets module:** open it. Make re-reads the headers. Map **Property Type (G)** to
+   `propertyType` and **Property Size (H)** to `propertySize`. Click **OK** and save the scenario.
+5. **Delete old test rows** in the sheet (not row 1).
+6. Submit the live form once and check the new row (Part 5).
 
 ---
 
@@ -47,14 +67,14 @@ nobody can copy them from the browser and flood the sheet with junk.
 Sign in to Google **as the client** (or with the account that will own the inquiries).
 
 1. Go to **sheets.google.com** and click **Blank spreadsheet**.
-2. Click the title **Untitled spreadsheet** (top left) and rename it, e.g. `FreshFold Laundry Inquiries`.
+2. Click the title **Untitled spreadsheet** (top left) and rename it, e.g. `Queen Clean Inquiries`.
 3. At the bottom, double-click the tab **Sheet1** and rename it to **`Inquiries`**.
    The spelling must be exact. Make looks for this name.
 4. Click cell **A1** and type the headers below, pressing **Tab** after each so each goes in the
    next column (A to M):
 
    ```
-   Timestamp	Inquiry ID	Full Name	Phone	Email	Service	Estimated Amount	Service Type	Address	Preferred Date	Preferred Time	Message	Status
+   Timestamp	Inquiry ID	Full Name	Phone	Email	Service	Property Type	Property Size	Address	Preferred Date	Preferred Time	Message	Status
    ```
 
    Tip: copy the line above and paste it into A1. Google Sheets splits it into the 13 columns
@@ -106,14 +126,14 @@ The website and Make share a password so Make can tell real inquiries from fake 
    `hook.eu…` or `hook.us…` to match it.
 3. In the left sidebar click **Scenarios**, then **Create a new scenario** (top right).
 4. You'll see an empty canvas with a big **+** in the middle. Click the scenario name at the top
-   left and rename it `Laundry website → Google Sheets`.
+   left and rename it `Cleaning website → Google Sheets`.
 
 ### 3.2 Module 1: Custom webhook (receives the inquiry)
 
 1. Click the big **+**. In the search box type **Webhooks** and click it.
 2. Choose **Custom webhook**.
 3. Next to the **Webhook** field click **Add**.
-4. **Webhook name:** `Laundry website inquiries`. Leave the rest as is and click **Save**.
+4. **Webhook name:** `Cleaning website inquiries`. Leave the rest as is and click **Save**.
 5. Make shows the webhook address, something like:
 
    ```
@@ -133,7 +153,7 @@ The website and Make share a password so Make can tell real inquiries from fake 
 While Make is waiting, send a sample. Replace the two placeholders and run this in a terminal:
 
 ```bash
-curl -X POST "PASTE_WEBHOOK_URL_HERE" -H "content-type: application/json" -d '{"timestamp":"2026-10-06 14:05","inquiryId":"LAU-20261006-TEST1","name":"Sample Customer","phone":"09171234567","email":"sample@example.com","service":"Wash & Fold","amount":"2 bags","serviceType":"Pickup","address":"12 Sample St, Brgy. Uno","preferredDate":"2026-10-10","preferredTime":"Morning","message":"Sample message","status":"New","secret":"PASTE_SECRET_HERE"}'
+curl -X POST "PASTE_WEBHOOK_URL_HERE" -H "content-type: application/json" -d '{"timestamp":"2026-10-06 14:05","inquiryId":"QC-20261006-TEST1","name":"Sample Customer","phone":"09171234567","email":"sample@example.com","service":"Deep Cleaning","propertyType":"Condo / Apartment","propertySize":"2 bedrooms, about 45 sqm","address":"Unit 5B, Sample Tower, Lacson St, Bacolod City","preferredDate":"2026-10-10","preferredTime":"Morning","message":"Sample message","status":"New","secret":"PASTE_SECRET_HERE"}'
 ```
 
 - The terminal prints `Accepted`. That's normal at this stage.
@@ -182,8 +202,8 @@ Open the Google Sheets module (click it).
    | Phone (D) | `phone` |
    | Email (E) | `email` |
    | Service (F) | `service` |
-   | Estimated Amount (G) | `amount` |
-   | Service Type (H) | `serviceType` |
+   | Property Type (G) | `propertyType` |
+   | Property Size (H) | `propertySize` |
    | Address (I) | `address` |
    | Preferred Date (J) | `preferredDate` |
    | Preferred Time (K) | `preferredTime` |
@@ -243,7 +263,7 @@ settings prevent that and make sure no inquiry is lost.
 4. Click **OK**.
 
 What happens now when Google fails:
-- The customer sees the error message with the shop's phone number, so they can call or try again.
+- The customer sees the error message with the business's phone number, so they can call or try again.
 - Make keeps the inquiry under **Incomplete executions** and retries it automatically. It usually
   reaches the sheet within 15 minutes.
 - The scenario **stays on** for the next customer.
@@ -298,7 +318,8 @@ Open http://localhost:3000/request-a-quote (or the live site). Tick each item:
 - [ ] **Phone format:** enter `0917 123 4567`. The sheet shows `09171234567`, with the leading zero kept.
 - [ ] **Formula safety:** put `=1+1` in the Message. The sheet shows the text `=1+1`, not `2`.
       (If it shows `2`, go back to 3.5 step 7 and set **Raw**.)
-- [ ] **Pickup vs drop-off:** with **Pickup**, the address is saved. With **Drop-off**, the Address cell is empty.
+- [ ] **Property and address:** choose **Condo / Apartment** and enter an address. The row shows
+      `Condo / Apartment` under Property Type and the full address under Address.
 - [ ] **Wrong password:** change one letter of `MAKE_WEBHOOK_SECRET` in `.env.local`, submit. The site
       shows the error message and **no row** is added. Change it back.
 - [ ] **Scenario off:** switch the scenario **OFF** in Make and submit. The site shows the error

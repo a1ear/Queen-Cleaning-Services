@@ -16,7 +16,7 @@ export default function NotFound() {
         <p className="lead">The link may be old or mistyped. Here are some places to go instead.</p>
         <div className="cta-row">
           <Link className="btn btn-primary btn-lg" href="/">Back to Home</Link>
-          <Link className="btn btn-outline btn-lg" href={QUOTE_PATH}>Request a Quote</Link>
+          <Link className="btn btn-outline btn-lg" href={QUOTE_PATH}>Request Services</Link>
         </div>
       </div>
     </section>

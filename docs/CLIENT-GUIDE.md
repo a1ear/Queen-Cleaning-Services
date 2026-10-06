@@ -1,6 +1,6 @@
 # Your website inquiries: how to use the Google Sheet
 
-When a customer fills in the **Request a Quote** form on your website, their request appears
+When a customer fills in the **Request Services** form on your website, their request appears
 in your Google Sheet automatically. You don't need to log in to the website or install anything.
 
 ## Where to find inquiries
@@ -16,13 +16,13 @@ You can also use the Google Sheets app on your phone.
 | Column | What it shows |
 |---|---|
 | Timestamp | When the customer sent the request (Philippine time). |
-| Inquiry ID | The reference number the customer was shown, e.g. `LAU-20261006-7KQ2M`. Ask for it when they call. |
+| Inquiry ID | The reference number the customer was shown, e.g. `QC-20261006-7KQ2M`. Ask for it when they call. |
 | Full Name, Phone, Email | How to reach the customer. Email may be empty. |
 | Service | The service they chose. |
-| Estimated Amount | Their own estimate, for example "2 bags". |
-| Service Type | Drop-off, Pickup, Delivery, or Pickup & Delivery. |
-| Address | Only filled in for pickup or delivery. |
-| Preferred Date / Time | When they'd like it. These may be empty. |
+| Property Type | House, Condo / Apartment, Office / Commercial, or Other. |
+| Property Size | Their own description, for example "3 bedrooms". May be empty. |
+| Address | Where the cleaning is to be done. Always filled in. |
+| Preferred Date / Time | When they'd like the cleaning. These may be empty. |
 | Message | Special instructions. |
 | Status | Where the inquiry is. **This is the column for you to update.** |
 
@@ -34,7 +34,7 @@ Click the **Status** cell and pick from the list:
 - **Contacted**: you've called or messaged the customer
 - **Quoted**: you've given them a price
 - **Confirmed**: they said yes
-- **Completed**: the laundry is done and returned
+- **Completed**: the cleaning is done
 - **Cancelled**: they decided not to go ahead
 
 Tip: click the filter icon on the Status header to show only **New** inquiries.

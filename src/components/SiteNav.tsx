@@ -68,7 +68,7 @@ export function SiteNav() {
         </ul>
         <Link className="btn btn-primary btn-sm nav-cta" href={QUOTE_PATH}
           aria-current={pathname === QUOTE_PATH ? "page" : undefined}>
-          Request a Quote
+          Request Services
         </Link>
       </nav>
     </>

@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     today: dateInZone(TIME_ZONE),
     allowed: {
       service: serviceOptions,
-      serviceType: form.offersPickupDelivery ? form.serviceTypes : [form.serviceTypes[0]],
+      propertyType: form.propertyTypes,
       preferredTime: form.timeSlots,
     },
   });

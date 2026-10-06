@@ -9,7 +9,7 @@ const { business: b } = siteConfig;
 
 export const metadata: Metadata = {
   title: "Contact Us",
-  description: `Contact ${b.name}: phone, email, address, and opening hours. Or request a laundry quote online.`,
+  description: `Contact ${b.name}: phone, email, address, and opening hours. Or request a cleaning quote online.`,
   alternates: { canonical: "/contact" },
 };
 
@@ -17,7 +17,7 @@ export default function ContactPage() {
   return (
     <>
       <PageHero eyebrow="Contact" title="Get in touch"
-        intro="Call, text, or message us, or visit the shop during opening hours. For a quotation, the quickest way is our online form." />
+        intro="Call, text, or message us, or visit us during opening hours. For a quotation, the quickest way is our online form." />
 
       <section className="section section-flush-top" aria-label="Contact details">
         <div className="container contact-grid">
@@ -53,7 +53,7 @@ export default function ContactPage() {
             <Hours />
             <div className="panel-cta">
               <p>Need a quotation?</p>
-              <Link className="btn btn-primary btn-block" href={QUOTE_PATH}>Request a Quote</Link>
+              <Link className="btn btn-primary btn-block" href={QUOTE_PATH}>Request Services</Link>
             </div>
           </aside>
         </div>

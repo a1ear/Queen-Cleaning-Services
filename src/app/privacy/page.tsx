@@ -21,11 +21,11 @@ export default function PrivacyPage() {
         <div className="container prose">
           <p>
             When you send a request through our quote form, we collect your name and phone number, and, if you give
-            them, your email address, home address, and the details of your laundry request.
+            them, your email address, and the address and details of the cleaning you ask about.
           </p>
           <h2>How we use your details</h2>
           <p>
-            We use them only to reply to your request, give you a quotation, and arrange pickup, drop-off, or delivery.
+            We use them only to reply to your request, give you a quotation, and arrange the cleaning visit.
             We do not sell your details or use them for advertising.
           </p>
           <h2>Where they are kept</h2>

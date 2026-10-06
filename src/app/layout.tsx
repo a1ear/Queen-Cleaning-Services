@@ -10,7 +10,7 @@ const { business: b } = siteConfig;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.siteUrl),
-  title: { default: `${b.name} | Professional Laundry Services`, template: `%s | ${b.name}` },
+  title: { default: `${b.name} | Professional Cleaning Services in Bacolod City`, template: `%s | ${b.name}` },
   description: b.description,
   applicationName: b.name,
   openGraph: { type: "website", siteName: b.name, locale: "en_PH" },

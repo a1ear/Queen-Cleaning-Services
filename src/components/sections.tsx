@@ -25,7 +25,7 @@ export function SectionHead({ id, eyebrow, title }: { id: string; eyebrow: strin
 }
 
 export function CtaBand({
-  title = "Need a laundry quote?",
+  title = "Need a cleaning quote?",
   text = "Tell us what you need and we'll get back to you.",
 }: { title?: string; text?: string }) {
   return (
@@ -36,7 +36,7 @@ export function CtaBand({
           <p>{text}</p>
         </div>
         <Link className="btn btn-sun btn-lg" href={QUOTE_PATH}>
-          Request a Quote <Icon name="arrow" />
+          Request Services <Icon name="arrow" />
         </Link>
       </div>
     </section>

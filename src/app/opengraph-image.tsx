@@ -27,7 +27,7 @@ export default function OpengraphImage() {
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 30 }}>
           <div style={{ color: "#33505e" }}>{b.phone}</div>
-          <div style={{ background: "#ffd166", padding: "16px 32px", borderRadius: 40, fontWeight: 700 }}>Request a Quote</div>
+          <div style={{ background: "#ffd166", padding: "16px 32px", borderRadius: 40, fontWeight: 700 }}>Request Services</div>
         </div>
       </div>
     ),

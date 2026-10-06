@@ -2,16 +2,14 @@
 // route (the real check, because anything from the browser can be forged).
 // Keep this file dependency-free: the unit tests run it directly in Node.
 
-export const DROP_OFF = "Drop-off";
-
 /** Maximum lengths, after trimming. */
 export const LIMITS = {
   name: 80,
   phone: 16,
   email: 120,
   service: 80,
-  amount: 80,
-  serviceType: 40,
+  propertyType: 40,
+  propertySize: 80,
   address: 300,
   preferredDate: 10,
   preferredTime: 40,
@@ -26,7 +24,7 @@ export type InquiryErrors = Partial<Record<Field, string>>;
 
 /**
  * Philippine mobile (0917 123 4567, +63 917 123 4567) and landline
- * (02 8123 4567, 032 123 4567) numbers, once spaces and dashes are removed.
+ * (034 433 1234, 02 8123 4567) numbers, once spaces and dashes are removed.
  */
 export const PHONE_RE = /^(\+?63|0)[0-9]{9,10}$/;
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -41,8 +39,6 @@ const oneLine = (value: unknown) => clean(value).replace(/\s+/g, " ");
 
 export const normalizePhone = (value: unknown) => clean(value).replace(/[\s().-]/g, "");
 
-export const needsAddress = (serviceType: string) => serviceType !== "" && serviceType !== DROP_OFF;
-
 function isRealDate(value: string) {
   const [y, m, d] = value.split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
@@ -53,7 +49,7 @@ export type ValidateOptions = {
   /** YYYY-MM-DD. Dates before this are rejected. */
   today?: string;
   /** When given, values outside these lists are rejected (server side). */
-  allowed?: { service?: string[]; serviceType?: string[]; preferredTime?: string[] };
+  allowed?: { service?: string[]; propertyType?: string[]; preferredTime?: string[] };
 };
 
 /** Clean and check an inquiry. Unknown keys are dropped. */
@@ -63,15 +59,13 @@ export function validateInquiry(raw: Record<string, unknown>, { today, allowed }
     phone: normalizePhone(raw.phone),
     email: clean(raw.email).toLowerCase(),
     service: oneLine(raw.service),
-    amount: oneLine(raw.amount),
-    serviceType: oneLine(raw.serviceType),
+    propertyType: oneLine(raw.propertyType),
+    propertySize: oneLine(raw.propertySize),
     address: clean(raw.address),
     preferredDate: clean(raw.preferredDate),
     preferredTime: oneLine(raw.preferredTime),
     message: clean(raw.message),
   };
-  // A drop-off has no use for an address, so it is never stored.
-  if (!needsAddress(values.serviceType)) values.address = "";
 
   const errors: InquiryErrors = {};
 
@@ -87,12 +81,11 @@ export function validateInquiry(raw: Record<string, unknown>, { today, allowed }
   else if (allowed?.service && !allowed.service.includes(values.service))
     errors.service = "Please choose a service from the list.";
 
-  if (!values.serviceType) errors.serviceType = "Please choose drop-off, pickup, or delivery.";
-  else if (allowed?.serviceType && !allowed.serviceType.includes(values.serviceType))
-    errors.serviceType = "Please choose drop-off, pickup, or delivery.";
+  if (!values.propertyType) errors.propertyType = "Please choose the type of property.";
+  else if (allowed?.propertyType && !allowed.propertyType.includes(values.propertyType))
+    errors.propertyType = "Please choose the type of property from the list.";
 
-  if (needsAddress(values.serviceType) && values.address.length < 5)
-    errors.address = "Please enter your address so we can pick up or deliver your laundry.";
+  if (values.address.length < 5) errors.address = "Please enter the address of the place to be cleaned.";
 
   if (values.preferredDate) {
     if (!DATE_RE.test(values.preferredDate) || !isRealDate(values.preferredDate))

@@ -1,16 +1,17 @@
-# Laundry business website (Phase 1)
+# Cleaning company website, Bacolod City (Phase 1)
 
-A mobile-first website for a local laundry shop, with a **Request a Quote** form that saves each
+A mobile-first website for a general cleaning company in Bacolod City, with a **Request Services** form that saves each
 inquiry as a new row in the client's Google Sheet through **Make.com**. There is no database,
 login, or admin dashboard. Staff manage inquiries directly in the sheet.
 
-- **Pages:** Home, Services, About, Contact, Request a Quote, Privacy, 404
+- **Pages:** Home, Services, About, Contact, Request Services, Privacy, 404
 - **Stack:** Next.js 16 (App Router, TypeScript), plain CSS, no UI libraries
 - **Form flow:** browser → `/api/inquiry` (validate, rate-limit, make Inquiry ID) → Make.com webhook (secret-checked) → Google Sheets
 
 | Document | For |
 |---|---|
 | [docs/MAKE-SETUP.md](docs/MAKE-SETUP.md) | Developer: build the sheet and the Make.com scenario, then test it |
+| [docs/MAKE-FOR-CLAUDE.md](docs/MAKE-FOR-CLAUDE.md) | Claude: exact Make.com target state, payload contract, rules, and verification steps |
 | [docs/CLIENT-GUIDE.md](docs/CLIENT-GUIDE.md) | Client: how to read and track inquiries in the sheet |
 
 ## Run it locally
@@ -43,7 +44,7 @@ The current values are **samples**. Replace them with the client's real details,
 
 - Prices: `price: null` shows "Ask for a quote". Never fill in a guessed price.
 - Services feed the home page, the services page, the form dropdown, **and** the server's allow-list.
-- `form.offersPickupDelivery: false` hides the pickup/delivery questions.
+- `form.propertyTypes` and `form.sizeLabel` control the property questions on the quote form. The address is always required, because the job happens there.
 - Colours and font: the tokens at the top of [src/app/globals.css](src/app/globals.css). The logo is
   `LogoMark` in [src/components/Icon.tsx](src/components/Icon.tsx), plus [src/app/icon.svg](src/app/icon.svg).
 
@@ -78,9 +79,9 @@ plain static host is not enough.
 the webhook address in the page, and anyone could post junk rows into the sheet. Here the webhook
 URL and a shared secret stay in server env vars, and the Make filter drops anything without the
 secret. The server also re-validates every field (allow-listing the dropdown values), so a tampered
-request can't put arbitrary text into Service or Service Type.
+request can't put arbitrary text into Service or Property Type.
 
-**Inquiry IDs** are `LAU-YYYYMMDD-XXXXX` with a random suffix (no 0/O/1/I, so they're easy to read
+**Inquiry IDs** are `QC-YYYYMMDD-XXXXX` with a random suffix (no 0/O/1/I, so they're easy to read
 over the phone). They're generated on the server, so the ID shown to the customer is the one in the sheet.
 
 **Duplicates:** the submit button locks while sending; each filled-in form carries a one-time

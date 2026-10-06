@@ -2,17 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { DROP_OFF, FIELDS, LIMITS, needsAddress, validateInquiry, type Field, type InquiryErrors } from "@/lib/validate";
+import { FIELDS, LIMITS, validateInquiry, type Field, type InquiryErrors } from "@/lib/validate";
 import { Icon } from "./Icon";
 
 type Props = {
   services: { id: string; name: string }[];
   extraServiceOptions: string[];
-  offersPickupDelivery: boolean;
-  serviceTypes: string[];
+  propertyTypes: string[];
   timeSlots: string[];
-  amountLabel: string;
-  amountHint: string;
+  sizeLabel: string;
+  sizeHint: string;
   phone: string;
   phoneHref: string;
   messengerUrl: string;
@@ -47,7 +46,7 @@ export function QuoteForm(props: Props) {
   const [status, setStatus] = useState<Status>("idle");
   const [errorText, setErrorText] = useState(DEFAULT_ERROR);
   const [inquiryId, setInquiryId] = useState("");
-  const [serviceType, setServiceType] = useState(props.offersPickupDelivery ? "" : DROP_OFF);
+  const [propertyType, setPropertyType] = useState("");
 
   const read = () => Object.fromEntries(new FormData(formRef.current!)) as Record<string, string>;
   const control = <T extends Element>(name: string) => formRef.current?.elements.namedItem(name) as T | null;
@@ -90,7 +89,7 @@ export function QuoteForm(props: Props) {
   function onBlur(e: React.FocusEvent<HTMLFormElement>) {
     const target = e.target as Element as HTMLInputElement;
     const name = target.name as Field;
-    if (FIELDS.includes(name) && name !== "serviceType" && target.value) check(name);
+    if (FIELDS.includes(name) && name !== "propertyType" && target.value) check(name);
   }
 
   function onInput(e: React.FormEvent<HTMLFormElement>) {
@@ -165,7 +164,6 @@ export function QuoteForm(props: Props) {
 
   const submitting = status === "submitting";
   const errorList = FIELDS.filter((f) => errors[f]);
-  const showAddress = props.offersPickupDelivery && needsAddress(serviceType);
 
   return (
     <form ref={formRef} className="quote-form" noValidate onSubmit={onSubmit} onBlur={onBlur} onInput={onInput}
@@ -199,7 +197,7 @@ export function QuoteForm(props: Props) {
       </fieldset>
 
       <fieldset className="form-section">
-        <legend><span className="step-num" aria-hidden="true">2</span> Your laundry</legend>
+        <legend><span className="step-num" aria-hidden="true">2</span> The job</legend>
         <FieldWrap id="service" label="Service" error={errors.service}>
           {(d) => (
             <div className="select-wrap">
@@ -211,57 +209,42 @@ export function QuoteForm(props: Props) {
             </div>
           )}
         </FieldWrap>
-        <FieldWrap id="amount" label={props.amountLabel} optional hint={props.amountHint} error={errors.amount}>
-          {(d) => <input id="amount" name="amount" type="text" maxLength={LIMITS.amount} {...d} />}
+        <fieldset className={`field choice-field${errors.propertyType ? " has-error" : ""}`}
+          aria-describedby={errors.propertyType ? "propertyType-error" : undefined}>
+          <legend>What kind of place is it?</legend>
+          <div className="choices">
+            {props.propertyTypes.map((type, i) => (
+              <label className="choice" key={type}>
+                <input type="radio" name="propertyType" value={type} id={i === 0 ? "propertyType" : undefined} required
+                  checked={propertyType === type}
+                  onChange={() => {
+                    setPropertyType(type);
+                    setErrors((prev) => {
+                      const next = { ...prev };
+                      delete next.propertyType;
+                      return next;
+                    });
+                  }} />
+                <span>{type}</span>
+              </label>
+            ))}
+          </div>
+          {errors.propertyType && <p className="field-error" id="propertyType-error">{errors.propertyType}</p>}
+        </fieldset>
+        <FieldWrap id="propertySize" label={props.sizeLabel} optional hint={props.sizeHint} error={errors.propertySize}>
+          {(d) => <input id="propertySize" name="propertySize" type="text" maxLength={LIMITS.propertySize} {...d} />}
         </FieldWrap>
       </fieldset>
 
       <fieldset className="form-section">
-        <legend>
-          <span className="step-num" aria-hidden="true">3</span> {props.offersPickupDelivery ? "Pickup & schedule" : "Schedule"}
-        </legend>
-
-        {props.offersPickupDelivery ? (
-          <>
-            <fieldset className={`field choice-field${errors.serviceType ? " has-error" : ""}`}
-              aria-describedby={errors.serviceType ? "serviceType-error" : undefined}>
-              <legend>How should we get your laundry?</legend>
-              <div className="choices">
-                {props.serviceTypes.map((type, i) => (
-                  <label className="choice" key={type}>
-                    <input type="radio" name="serviceType" value={type} id={i === 0 ? "serviceType" : undefined} required
-                      checked={serviceType === type}
-                      onChange={() => {
-                        setServiceType(type);
-                        setErrors((prev) => {
-                          const next = { ...prev };
-                          delete next.serviceType;
-                          delete next.address;
-                          return next;
-                        });
-                      }} />
-                    <span>{type}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.serviceType && <p className="field-error" id="serviceType-error">{errors.serviceType}</p>}
-            </fieldset>
-
-            {showAddress && (
-              <div className="pickup-fields">
-                <FieldWrap id="address" label="Pickup or delivery address"
-                  hint="House number, street, barangay, and a landmark if it helps us find you." error={errors.address}>
-                  {(d) => <textarea id="address" name="address" rows={3} required maxLength={LIMITS.address} autoComplete="street-address" {...d} />}
-                </FieldWrap>
-              </div>
-            )}
-          </>
-        ) : (
-          <input type="hidden" name="serviceType" value={DROP_OFF} />
-        )}
+        <legend><span className="step-num" aria-hidden="true">3</span> Location &amp; schedule</legend>
+        <FieldWrap id="address" label="Address of the place to be cleaned"
+          hint="House number, street, barangay, and a landmark if it helps us find you." error={errors.address}>
+          {(d) => <textarea id="address" name="address" rows={3} required maxLength={LIMITS.address} autoComplete="street-address" {...d} />}
+        </FieldWrap>
 
         <div className="field-row">
-          <FieldWrap id="preferredDate" label="Preferred date" optional error={errors.preferredDate}>
+          <FieldWrap id="preferredDate" label="Preferred cleaning date" optional error={errors.preferredDate}>
             {(d) => <input id="preferredDate" name="preferredDate" type="date" {...d} />}
           </FieldWrap>
           <FieldWrap id="preferredTime" label="Preferred time" optional error={errors.preferredTime}>
@@ -280,7 +263,7 @@ export function QuoteForm(props: Props) {
       <fieldset className="form-section">
         <legend><span className="step-num" aria-hidden="true">4</span> Anything else?</legend>
         <FieldWrap id="message" label="Message" optional
-          hint="Tell us about your laundry needs or any special instructions." error={errors.message}>
+          hint="Tell us about your cleaning needs, areas that need extra attention, or any special instructions." error={errors.message}>
           {(d) => <textarea id="message" name="message" rows={4} maxLength={LIMITS.message} {...d} />}
         </FieldWrap>
       </fieldset>

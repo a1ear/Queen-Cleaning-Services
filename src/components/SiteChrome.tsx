@@ -31,7 +31,7 @@ export function SiteFooter() {
             <span className="brand-name">{b.name}</span>
           </Link>
           <p>{b.description}</p>
-          <Link className="btn btn-sun btn-sm" href={QUOTE_PATH}>Request a Quote</Link>
+          <Link className="btn btn-sun btn-sm" href={QUOTE_PATH}>Request Services</Link>
         </div>
         <div>
           <h2 className="footer-title">Contact</h2>
@@ -59,7 +59,7 @@ export function SiteFooter() {
             <li><Link href="/services">Services</Link></li>
             <li><Link href="/about">About</Link></li>
             <li><Link href="/contact">Contact</Link></li>
-            <li><Link href={QUOTE_PATH}>Request a Quote</Link></li>
+            <li><Link href={QUOTE_PATH}>Request Services</Link></li>
             <li><Link href="/privacy">Privacy Notice</Link></li>
           </ul>
         </div>
