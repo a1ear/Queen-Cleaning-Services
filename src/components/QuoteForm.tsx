@@ -125,7 +125,7 @@ export function QuoteForm(props: Props) {
       if (response.ok && data?.ok === true) {
         setInquiryId(typeof data.inquiryId === "string" ? data.inquiryId : "");
         setStatus("success");
-        document.title = document.title.replace(/^[^|]+/, "Request Submitted ");
+        document.title = document.title.replace("Request Services", "Request Submitted");
         return;
       }
       if (response.status === 422 && data?.errors) {

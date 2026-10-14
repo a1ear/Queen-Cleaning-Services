@@ -37,7 +37,12 @@ const clean = (value: unknown) =>
   (typeof value === "string" ? value : "").replace(CONTROL_CHARS, "").trim();
 const oneLine = (value: unknown) => clean(value).replace(/\s+/g, " ");
 
-export const normalizePhone = (value: unknown) => clean(value).replace(/[\s().-]/g, "");
+/**
+ * Removes spaces and punctuation, and writes the country code the local way
+ * (+63 917… → 0917…), so one phone number always matches one customer.
+ */
+export const normalizePhone = (value: unknown) =>
+  clean(value).replace(/[\s().-]/g, "").replace(/^\+?63(?=[0-9]{9,10}$)/, "0");
 
 function isRealDate(value: string) {
   const [y, m, d] = value.split("-").map(Number);

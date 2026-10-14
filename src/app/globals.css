@@ -355,7 +355,7 @@ address { font-style: normal; }
 .optional { font-weight: 500; font-size: 0.875rem; color: var(--muted); margin-left: 4px; }
 .hint { margin: -2px 0 8px; font-size: 0.95rem; color: var(--muted); }
 
-input[type="text"], input[type="tel"], input[type="email"], input[type="date"], select, textarea {
+input:not([type]), input[type="text"], input[type="tel"], input[type="email"], input[type="date"], input[type="time"], input[type="password"], input[type="search"], select, textarea {
   display: block; width: 100%; min-height: 52px; padding: 12px 14px;
   font: inherit; font-size: 1rem; /* 16px+ stops iOS from zooming in on focus */
   color: var(--ink); background: var(--surface);

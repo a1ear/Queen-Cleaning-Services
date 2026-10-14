@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree } from "next/font/google";
 import { isDemo, siteConfig } from "@/site.config";
-import { DemoBadge, DemoBar, SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import "./globals.css";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree", display: "swap" });
@@ -27,14 +26,7 @@ export const viewport: Viewport = { themeColor: "#0b7a75" };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={figtree.variable}>
-      <body>
-        <a className="skip-link" href="#main">Skip to main content</a>
-        {isDemo && <DemoBar />}
-        <SiteHeader />
-        <main id="main" tabIndex={-1}>{children}</main>
-        <SiteFooter />
-        {isDemo && <DemoBadge />}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

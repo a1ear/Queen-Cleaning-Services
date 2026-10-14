@@ -4,6 +4,18 @@ import { siteConfig } from "./src/site.config";
 
 const isProd = process.env.NODE_ENV === "production";
 
+// The admin panel talks to Convex over HTTPS and a WebSocket (live updates).
+function convexOrigins() {
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!url) return "";
+  try {
+    const { protocol, host } = new URL(url);
+    return ` ${protocol}//${host} ${protocol === "https:" ? "wss" : "ws"}://${host}`;
+  } catch {
+    return "";
+  }
+}
+
 // Production pages need inline scripts for React hydration; dev also needs eval.
 const csp = [
   "default-src 'self'",
@@ -11,7 +23,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self'${convexOrigins()}`,
   "frame-src https://www.google.com",
   "frame-ancestors 'none'",
   "form-action 'self'",
@@ -24,6 +36,11 @@ export default function config(phase: string): NextConfig {
   // Preview deploys can opt out with ALLOW_SAMPLE_CONTENT=1. (`next typegen`
   // loads this config in the same phase, hence the argv check.)
   const isBuild = phase === PHASE_PRODUCTION_BUILD && process.argv.includes("build");
+  if (isBuild && !process.env.NEXT_PUBLIC_CONVEX_URL) {
+    throw new Error(
+      "NEXT_PUBLIC_CONVEX_URL is not set. On Vercel, use the build command \"npx convex deploy --cmd 'npm run build'\" with CONVEX_DEPLOY_KEY set (see docs/CRM-SETUP.md).",
+    );
+  }
   if (isBuild && !siteConfig.contentReviewed && process.env.ALLOW_SAMPLE_CONTENT !== "1") {
     throw new Error(
       "site.config.ts still has sample content (contentReviewed: false). Fill in the client's real details and set contentReviewed to true, or set ALLOW_SAMPLE_CONTENT=1 for a preview build.",

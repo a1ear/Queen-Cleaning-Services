@@ -37,7 +37,7 @@ export const siteConfig = {
   demoMode: false,
 
   /** The live address of the site, no trailing slash. */
-  siteUrl: "https://www.example.com",
+  siteUrl: "https://queen-cleaning-services.vercel.app",
 
   business: {
     /** Placeholder: confirm the exact business name with the client. */

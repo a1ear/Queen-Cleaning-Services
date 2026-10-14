@@ -1,122 +1,100 @@
-# Cleaning company website, Bacolod City (Phase 1)
+# Cleaning company website + CRM, Bacolod City
 
-A mobile-first website for a general cleaning company in Bacolod City, with a **Request Services** form that saves each
-inquiry as a new row in the client's Google Sheet through **Make.com**. There is no database,
-login, or admin dashboard. Staff manage inquiries directly in the sheet.
+A mobile-first website for a general cleaning company in Bacolod City, with a **Request Services**
+form and a private **admin panel (CRM)** at `/admin`. Every request is saved to a Convex database.
+The owner signs in to follow up: change status, quote a price, schedule the cleaning, add notes,
+and see each customer's history.
 
-- **Pages:** Home, Services, About, Contact, Request Services, Privacy, 404
-- **Stack:** Next.js 16 (App Router, TypeScript), plain CSS, no UI libraries
-- **Form flow:** browser → `/api/inquiry` (validate, rate-limit, make Inquiry ID) → Make.com webhook (secret-checked) → Google Sheets
+- **Public pages:** Home, Services, About, Contact, Request Services, Privacy, 404
+- **Admin (`/admin`):** Inquiries pipeline, inquiry detail with history, Schedule, Customers
+- **Stack:** Next.js 16 (App Router, TypeScript), plain CSS, Convex (database + Convex Auth)
+- **Form flow:** browser → `/api/inquiry` (spam checks) → Convex `inquiries.submit` (secret-checked: validate, rate-limit, save, log)
 
 | Document | For |
 |---|---|
-| [docs/MAKE-SETUP.md](docs/MAKE-SETUP.md) | Developer: build the sheet and the Make.com scenario, then test it |
-| [docs/MAKE-FOR-CLAUDE.md](docs/MAKE-FOR-CLAUDE.md) | Claude: exact Make.com target state, payload contract, rules, and verification steps |
-| [docs/CLIENT-GUIDE.md](docs/CLIENT-GUIDE.md) | Client: how to read and track inquiries in the sheet |
+| [docs/CRM-SETUP.md](docs/CRM-SETUP.md) | Developer: run locally, deploy to Vercel + Convex, backups, common tasks |
+| [docs/CRM-FOR-CLAUDE.md](docs/CRM-FOR-CLAUDE.md) | Claude: data model, security rules, functions, what's been verified |
+| [docs/CLIENT-GUIDE.md](docs/CLIENT-GUIDE.md) | Client: how to use the admin panel |
 
 ## Run it locally
 
 ```bash
 npm install
-npm run dev
+npx convex dev          # terminal 1: database (first run logs in and creates the project)
+npm run dev             # terminal 2: website
 ```
 
-Open http://localhost:3000. No Make.com account is needed locally: with `MAKE_WEBHOOK_URL` unset,
-submissions are written to `.data/dev-inquiries.jsonl` (git-ignored). To see the error and loading
-states, put `MOCK_MAKE=fail` or `MOCK_MAKE=slow` in `.env.local`.
-
-To test against the real scenario, copy `.env.example` to `.env.local` and fill in both values.
+One-time admin setup is in [docs/CRM-SETUP.md](docs/CRM-SETUP.md#run-it-on-your-computer).
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Development server |
-| `npm test` | Unit tests for the validation rules |
+| `npm run dev` | Website (Next.js) |
+| `npm run dev:convex` | Database functions, redeployed on save |
+| `npm test` | Unit tests for the form rules |
 | `npm run check` | Lint + typecheck + tests |
-| `npm run build` | Production build. **Fails while `contentReviewed` is false**, so sample content can't ship by accident |
-| `ALLOW_SAMPLE_CONTENT=1 npm run build` | Preview build with sample content (search engines are told not to index it) |
+| `npm run build` | Production build. **Fails while `contentReviewed` is false** (sample content) and when Convex isn't configured |
 
 ## Changing content
 
 Everything the client is likely to change is in **[src/site.config.ts](src/site.config.ts)**:
-business name, phone, address, hours, social links, services and prices, About text, and form options.
-The current values are **samples**. Replace them with the client's real details, then set
-`contentReviewed: true`.
+business name, phone, address, hours, services and prices, About text, and form options. The
+current values are **samples**. Replace them with the client's real details, then set
+`contentReviewed: true`. Until then every page shows a **DEMO WEBSITE** banner.
 
 - Prices: `price: null` shows "Ask for a quote". Never fill in a guessed price.
 - Services feed the home page, the services page, the form dropdown, **and** the server's allow-list.
-- `form.propertyTypes` and `form.sizeLabel` control the property questions on the quote form. The address is always required, because the job happens there.
-- Colours and font: the tokens at the top of [src/app/globals.css](src/app/globals.css). The logo is
-  `LogoMark` in [src/components/Icon.tsx](src/components/Icon.tsx), plus [src/app/icon.svg](src/app/icon.svg).
-
-## Deploying
-
-This needs a host that runs Next.js server code, because `/api/inquiry` runs on the server. A
-plain static host is not enough.
-
-1. Push the repo to GitHub and import it into the host (Vercel or Netlify both detect Next.js).
-   **Vercel's free Hobby plan is for non-commercial use only.** A business site needs Vercel Pro, or
-   use a host whose free tier allows commercial use. Check that the host supports Next.js 16.
-2. Set environment variables: `MAKE_WEBHOOK_URL`, `MAKE_WEBHOOK_SECRET` (and `ALLOW_SAMPLE_CONTENT=1`
-   on preview deploys only).
-3. Connect the client's domain. HTTPS is automatic on these hosts.
-4. Set `siteUrl` in `site.config.ts` to the real domain.
-5. Run the checks in **docs/MAKE-SETUP.md → "Check it before handing over"** against the **live** site.
+- Colours and font: the tokens at the top of [src/app/globals.css](src/app/globals.css). Admin styles: [src/app/admin/admin.css](src/app/admin/admin.css).
 
 ## Launch checklist
 
 - [ ] All sample content replaced and confirmed by the client; `contentReviewed: true`
 - [ ] Real domain on HTTPS; `siteUrl` updated
-- [ ] Make scenario ON, Value input option **Raw**, incomplete executions stored
-- [ ] All MAKE-SETUP.md checks pass on the live site; test rows deleted
-- [ ] Sheet shared only with staff; notifications turned on
-- [ ] Phone checked: form completed on a real phone over mobile data
-- [ ] Share preview checked (paste the URL into Messenger)
-- [ ] Client has the sheet link and CLIENT-GUIDE.md
+- [ ] Convex production deployed; `ADMIN_EMAIL` is the client's email; client chose their own password
+- [ ] Every check in CRM-SETUP.md "Check it before handing over" passes on the live site
+- [ ] A backup exported **and restored once** into a test deployment
+- [ ] Form completed on a real phone over mobile data
+- [ ] Client has the /admin link and CLIENT-GUIDE.md
 
 ## Architecture decisions
 
-**Why a server route instead of posting straight to Make.com?** A browser-side form would publish
-the webhook address in the page, and anyone could post junk rows into the sheet. Here the webhook
-URL and a shared secret stay in server env vars, and the Make filter drops anything without the
-secret. The server also re-validates every field (allow-listing the dropdown values), so a tampered
-request can't put arbitrary text into Service or Property Type.
+**Security is enforced in the database layer.** Every admin query and mutation calls
+`requireAdmin`, which checks the signed-in user against `ADMIN_EMAIL` in Convex itself. The
+`/admin` redirect in `src/proxy.ts` only decides which page to show. Calling Convex directly
+without signing in gets "Not signed in." (tested for every admin function).
 
-**Inquiry IDs** are `QC-YYYYMMDD-XXXXX` with a random suffix (no 0/O/1/I, so they're easy to read
-over the phone). They're generated on the server, so the ID shown to the customer is the one in the sheet.
+**Only the website can save inquiries.** `inquiries.submit` requires a server-only secret, so
+nobody can skip the site's spam checks by calling the database directly. Validation runs again
+inside Convex with the same rules (`src/lib/validate.ts`) and allow-lists (`src/site.config.ts`).
 
-**Duplicates:** the submit button locks while sending; each filled-in form carries a one-time
-`submissionId`, and the server returns the original Inquiry ID if the same submission arrives
-again (double tap, retry after a timeout).
+**History is never rewritten.** What the customer submitted is stored as sent and never edited.
+Status, schedule and quote changes are recorded in an append-only `activity` log with the old and
+new values, who made the change, and when. Quotes are stored in centavos as given.
 
-**Formula injection:** customers' text is written with Sheets' **Raw** input option, so `=…` is
-stored as text. This is a Make setting, verified by a check in MAKE-SETUP.md.
+**One customer per phone number.** Numbers are normalized (`+63 917…` → `0917…`) so repeat
+clients show their whole history.
 
-### The 13 layers, scoped for Phase 1
+### The 13 layers
 
 | Layer | Decision |
 |---|---|
-| Frontend | In scope. Loading, error, empty-field, success, and 404 states. |
-| Backend & APIs | In scope. One route, `/api/inquiry`, that validates everything server-side. |
-| Database & storage | **Google Sheets by design** (PRD). No database in Phase 1. |
-| Auth & permissions | Customers: none needed. Staff access = Google Sheet sharing. Server→Make protected by a shared secret. |
-| Hosting & deploy | Node-capable Next.js host + client's domain over HTTPS. |
-| Cloud & compute | One serverless function. Nothing else needed at this size. |
-| CI/CD & version control | Git + host's build-on-push. `npm run check` before pushing. No CI pipeline yet (a single developer, a small site). |
-| Security | Same-origin check, JSON-only, 8 KB body cap, server validation + allow-lists, honeypot, secret to Make, CSP and security headers, no secrets in the client bundle. |
-| Rate limiting | 5 submissions per IP per 10 minutes, **in memory per server instance** (best effort on serverless). Swap for Upstash Redis if real abuse appears. |
-| Caching & CDN | All pages are prerendered static HTML served from the host's CDN. The API is never cached. |
-| Scaling | Not needed. The bottleneck is Make's operation quota, not the site. |
-| Monitoring & logs | Host function logs (`[inquiry] delivered` / `delivery failed`, without personal data), Make's error emails, and Sheets' change emails. No paid APM. |
-| Availability & recovery | Make keeps incomplete executions for re-run; Google Sheets keeps version history (File → Version history). The site is stateless, so redeploying restores it. The form's error message gives the phone number, so customers can always reach the shop. |
+| Frontend | Public site plus admin. Loading (skeletons), empty, error, not-found and success states. |
+| Backend & APIs | `/api/inquiry` (Next) for spam checks; Convex functions for all data rules. |
+| Database & storage | Convex: `customers`, `inquiries`, append-only `activity`, `rateLimits`, auth tables. Indexed for every list. |
+| Auth & permissions | Convex Auth, password provider, one admin email only, 12+ character passwords, failed sign-ins rate-limited by Convex Auth. 14-day session. |
+| Hosting & deploy | Vercel (Next) + Convex cloud. Build: `npx convex deploy --cmd 'npm run build'`. |
+| Cloud & compute | Serverless on both sides. Nothing to manage. |
+| CI/CD & version control | Git; Vercel builds on push (and deploys Convex functions in the same step). `npm run check` before pushing. |
+| Security | Server-side admin checks, server-only submit secret, same-origin check, 8 KB body cap, validation + allow-lists, honeypot, CSP (Convex origins only), security headers, `/admin` never indexed. |
+| Rate limiting | In the database, so it holds across servers: 5 submissions per IP per 10 min, 120 per hour site-wide. |
+| Caching & CDN | Public pages are static and served from the CDN; the proxy only runs on `/admin` and `/api/auth`. |
+| Scaling | Fine for a local business. Lists show the newest 200 with search for older; revisit counts at tens of thousands of inquiries. |
+| Monitoring & logs | Convex dashboard logs, Vercel function logs (no personal data in our log lines). |
+| Availability & recovery | `npx convex export` backups (restore tested before launch), Convex's managed storage; the site is stateless. The form error shows the phone number, so customers can always reach the business. |
 
 ### Known limitations
-- The rate limiter and duplicate detection are per server instance (see above).
-- If the Make scenario is switched off, Make queues incoming calls and processes them when it's
-  switched back on, but the customer has already been shown the error and may resubmit. Staff may
-  see an occasional duplicate (same phone, minutes apart).
-- The menu button needs JavaScript. Without it, every page is still linked from the footer.
-- About 180 KB (gzipped) of JavaScript is the React/Next.js runtime. Pages are prerendered, so
-  content shows before scripts load.
-- `npm audit` reports advisories in `eslint-config-next`'s dependencies. These are dev-only lint
-  tools and are not shipped to the site. The suggested "fix" downgrades to Next 14, so leave it until
-  the Next team updates the package.
+- Single admin, by choice. Staff accounts would need roles (see CRM-FOR-CLAUDE.md).
+- Password reset and customer data deletion are done in the Convex dashboard, not in the panel.
+- About 180 KB (gzipped) of JavaScript is the React/Next.js runtime on public pages; the admin
+  adds the Convex client. Pages are prerendered, so content shows before scripts load.
+- `npm audit` reports advisories in `eslint-config-next`'s dependencies (dev-only lint tools, not
+  shipped). The suggested "fix" downgrades to Next 14, so leave it.

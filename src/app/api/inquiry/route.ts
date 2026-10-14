@@ -1,14 +1,9 @@
 import type { NextRequest } from "next/server";
-import { serviceOptions, siteConfig } from "@/site.config";
-import { dateInZone, validateInquiry } from "@/lib/validate";
-import { DeliveryError, TIME_ZONE, deliverInquiry, formatTimestamp, makeInquiryId } from "@/lib/inquiry";
-import { allow, previousInquiry, rememberInquiry } from "@/lib/rate-limit";
+import { fetchMutation } from "convex/nextjs";
+import { api } from "@convex/_generated/api";
 
 const MAX_BODY_BYTES = 8_000;
 const SUBMISSION_ID_RE = /^[A-Za-z0-9-]{8,64}$/;
-
-// Same submission arriving twice at once (double tap, retry) shares one delivery.
-const inFlight = new Map<string, Promise<string>>();
 
 const reply = (status: number, body: Record<string, unknown>) =>
   Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -27,18 +22,16 @@ function isSameOrigin(request: NextRequest) {
   }
 }
 
+/**
+ * Public endpoint for the quote form. Cheap checks happen here; validation,
+ * rate limiting and storage happen in Convex (`inquiries.submit`), which only
+ * accepts calls carrying INQUIRY_SUBMIT_SECRET, so it can't be called around
+ * this route.
+ */
 export async function POST(request: NextRequest) {
   // Only this site's own pages may post here.
   if (!isSameOrigin(request)) return reply(403, GENERIC_ERROR);
-
-  if (!request.headers.get("content-type")?.startsWith("application/json")) {
-    return reply(415, GENERIC_ERROR);
-  }
-
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
-  if (!allow(`ip:${ip}`, 5, 10 * 60_000)) {
-    return reply(429, { ok: false, error: "Too many requests. Please wait a few minutes, or contact us directly." });
-  }
+  if (!request.headers.get("content-type")?.startsWith("application/json")) return reply(415, GENERIC_ERROR);
 
   const text = await request.text();
   if (text.length > MAX_BODY_BYTES) return reply(413, GENERIC_ERROR);
@@ -55,59 +48,38 @@ export async function POST(request: NextRequest) {
   // Honeypot: people never see this field, bots fill it in. Pretend it worked
   // so the bot has no signal to adapt to, and store nothing.
   if (typeof body.website === "string" && body.website.trim() !== "") {
-    console.info("[inquiry] honeypot triggered, dropped", { ip });
+    console.info("[inquiry] honeypot triggered, dropped");
     return reply(200, { ok: true });
   }
 
-  const { form } = siteConfig;
-  const { values, errors, valid } = validateInquiry(body, {
-    today: dateInZone(TIME_ZONE),
-    allowed: {
-      service: serviceOptions,
-      propertyType: form.propertyTypes,
-      preferredTime: form.timeSlots,
-    },
-  });
-  if (!valid) return reply(422, { ok: false, errors });
-
-  const submissionId = typeof body.submissionId === "string" && SUBMISSION_ID_RE.test(body.submissionId) ? body.submissionId : null;
-  if (submissionId) {
-    const earlier = previousInquiry(submissionId);
-    if (earlier) return reply(200, { ok: true, inquiryId: earlier });
-    const pending = inFlight.get(submissionId);
-    if (pending) {
-      try {
-        return reply(200, { ok: true, inquiryId: await pending });
-      } catch {
-        return reply(502, GENERIC_ERROR);
-      }
-    }
+  const secret = process.env.INQUIRY_SUBMIT_SECRET;
+  if (!secret || !process.env.NEXT_PUBLIC_CONVEX_URL) {
+    console.error("[inquiry] INQUIRY_SUBMIT_SECRET or NEXT_PUBLIC_CONVEX_URL is not set");
+    return reply(500, GENERIC_ERROR);
   }
 
-  const now = new Date();
-  const row = {
-    timestamp: formatTimestamp(now),
-    inquiryId: makeInquiryId(form.inquiryIdPrefix, now),
-    ...values,
-    status: "New" as const,
-  };
+  // Only string fields go to the database; anything else is dropped.
+  const fields: Record<string, string> = {};
+  for (const [key, value] of Object.entries(body)) {
+    if (typeof value === "string" && key !== "website" && key !== "submissionId") fields[key] = value;
+  }
+  const submissionId =
+    typeof body.submissionId === "string" && SUBMISSION_ID_RE.test(body.submissionId) ? body.submissionId : undefined;
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || request.headers.get("x-real-ip") || "unknown";
 
-  const delivery = deliverInquiry(row).then(() => row.inquiryId);
-  if (submissionId) inFlight.set(submissionId, delivery);
   try {
-    await delivery;
-    if (submissionId) rememberInquiry(submissionId, row.inquiryId);
-    console.info("[inquiry] delivered", { inquiryId: row.inquiryId });
-    return reply(200, { ok: true, inquiryId: row.inquiryId });
+    const result = await fetchMutation(api.inquiries.submit, { secret, ip, submissionId, fields });
+    if (result.ok) {
+      console.info("[inquiry] saved", { ref: result.ref });
+      return reply(200, { ok: true, inquiryId: result.ref });
+    }
+    if (result.reason === "rate_limited") {
+      return reply(429, { ok: false, error: "Too many requests. Please wait a few minutes, or contact us directly." });
+    }
+    return reply(422, { ok: false, errors: result.errors });
   } catch (error) {
-    // The row did not reach the sheet. Log enough to find it, without the
-    // customer's personal details.
-    console.error("[inquiry] delivery failed", {
-      inquiryId: row.inquiryId,
-      reason: error instanceof DeliveryError ? error.message : String(error),
-    });
+    // Logged without the customer's personal details.
+    console.error("[inquiry] save failed", { reason: error instanceof Error ? error.message : String(error) });
     return reply(502, GENERIC_ERROR);
-  } finally {
-    if (submissionId) inFlight.delete(submissionId);
   }
 }

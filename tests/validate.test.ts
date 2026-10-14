@@ -41,6 +41,13 @@ test("accepts Philippine mobile and landline formats", () => {
   }
 });
 
+test("writes every format of the same number the same way", () => {
+  for (const phone of ["0928 456 7812", "+63 928 456 7812", "639284567812", "(0928) 456-7812"]) {
+    assert.equal(validateInquiry({ ...valid, phone }).values.phone, "09284567812", phone);
+  }
+  assert.equal(validateInquiry({ ...valid, phone: "+63 34 433 1234" }).values.phone, "0344331234");
+});
+
 test("rejects malformed phone numbers", () => {
   for (const phone of ["12345", "0917123456789", "abc", "+1 415 555 0100", "0917-ABC-4567"]) {
     assert.ok(validateInquiry({ ...valid, phone }).errors.phone, phone);

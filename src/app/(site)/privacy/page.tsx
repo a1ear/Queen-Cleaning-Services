@@ -30,8 +30,8 @@ export default function PrivacyPage() {
           </p>
           <h2>Where they are kept</h2>
           <p>
-            Requests are saved to a private spreadsheet that only our staff can open. Make.com passes the form to the
-            spreadsheet, and Google stores it. Both handle the data on our behalf.
+            Requests are saved in our private customer database, which only our administrator can open with a password.
+            The database is hosted by Convex, which stores the data on our behalf.
           </p>
           <h2>How long we keep them</h2>
           <p>We keep requests only as long as we need them to serve you, and remove old requests regularly.</p>

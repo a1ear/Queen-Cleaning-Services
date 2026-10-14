@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { QUOTE_PATH } from "@/lib/contact";
+import SiteLayout from "./(site)/layout";
 
 export const metadata: Metadata = {
   title: "Page Not Found",
@@ -9,16 +10,18 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <section className="section not-found">
-      <div className="container">
-        <p className="eyebrow">Error 404</p>
-        <h1>We couldn&apos;t find that page</h1>
-        <p className="lead">The link may be old or mistyped. Here are some places to go instead.</p>
-        <div className="cta-row">
-          <Link className="btn btn-primary btn-lg" href="/">Back to Home</Link>
-          <Link className="btn btn-outline btn-lg" href={QUOTE_PATH}>Request Services</Link>
+    <SiteLayout>
+      <section className="section not-found">
+        <div className="container">
+          <p className="eyebrow">Error 404</p>
+          <h1>We couldn&apos;t find that page</h1>
+          <p className="lead">The link may be old or mistyped. Here are some places to go instead.</p>
+          <div className="cta-row">
+            <Link className="btn btn-primary btn-lg" href="/">Back to Home</Link>
+            <Link className="btn btn-outline btn-lg" href={QUOTE_PATH}>Request Services</Link>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </SiteLayout>
   );
 }

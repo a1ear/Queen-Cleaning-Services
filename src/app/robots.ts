@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
   // Keep sample content out of search results until the client signs it off.
   if (!siteConfig.contentReviewed) return { rules: { userAgent: "*", disallow: "/" } };
   return {
-    rules: { userAgent: "*", allow: "/", disallow: "/api/" },
+    rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/admin"] },
     sitemap: `${siteConfig.siteUrl}/sitemap.xml`,
   };
 }

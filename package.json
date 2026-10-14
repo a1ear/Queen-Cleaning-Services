@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:convex": "convex dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -12,6 +13,9 @@
     "check": "npm run lint && npm run typecheck && npm test"
   },
   "dependencies": {
+    "@auth/core": "^0.41.1",
+    "@convex-dev/auth": "^0.0.96",
+    "convex": "^1.46.0",
     "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -23,9 +27,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
+    "jose": "^6.2.12",
     "typescript": "^5"
   },
-  "description": "General cleaning company website (Bacolod City) with a quote form that records inquiries in Google Sheets through Make.com.",
+  "description": "General cleaning company website (Bacolod City) with a Request Services form and a Convex-backed admin CRM.",
   "engines": {
     "node": ">=20.9"
   }
